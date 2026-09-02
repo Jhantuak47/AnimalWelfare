@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+// User (id, email, role: REPORTER|VOLUNTEER — can just be a boolean/enum)
+// Report (id, reporterId, lat, lng, description, photoUrl, animalType, status, claimedById, createdAt, resolvedAt, resolutionNote)
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AnimalType {
+  DOG
+  CAT
+  RAT
+  RABBIT
+  OTHER
+}
+
+enum ReporterStatus {
+  REPORTED
+  CLAIMED
+  RESCUED
+  OTHER
+}
+
+enum Role {
+  USER
+  REPORTER
+  VOLUNTEER
+  ADMIN
+}
+
+model User {
+  id          String      @id @default(uuid())
+  email       String      @unique
+  name        String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt  @default(now())
+  role       Role        @default(USER)
+  claims      Reporter[]
+}
+
+
+model Reporter {
+  id              String          @id @default(uuid())
+  reporterId      String?     
+  lat             String?
+  lang            String?
+  description     String
+  photoUrl        String?
+  animalType      AnimalType
+  status          ReporterStatus
+  volunteer       User?           @relation(fields: [claimedById], references: [id])
+  claimedById     String?
+  createdAt       DateTime        @default(now())
+  resolvedAt      DateTime?       @default(now())
+  resolutionNote  String?
+}
