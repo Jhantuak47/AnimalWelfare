@@ -23,4 +23,14 @@ const ReportingFormFieldSchema = PetImageAndLocationFieldSchema.merge(
 ).merge(PetAdditionalInfoFieldSchema);
 
 export default ReportingFormFieldSchema;
+
 export type ReportingFormFieldType = z.infer<typeof ReportingFormFieldSchema>;
+
+export const reportingFormFieldKeys: (keyof ReportingFormFieldType)[] = [
+  "petImage",
+  "location",
+  "animalType",
+  "description",
+  "conditionInfo",
+  "firstAidRequired",
+] as const;

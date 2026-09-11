@@ -1,14 +1,15 @@
 "use server";
 
+import React from "react";
+
 import { getUser } from "@/auth/server";
 import { ReportingFormFieldType } from "@/components/reporters/reporting-details-formValidator";
 import { saveToS3 } from "@/lib/aws.utils";
 import { prisma } from "@/lib/prisma";
 import { handleError } from "@/lib/utils";
 import { ReporterStatus, Role } from "@/prisma/generated/prisma/enums";
-import { AuthError } from "@supabase/supabase-js";
+import { AuthError, User } from "@supabase/supabase-js";
 import { after } from "next/server";
-import React from "react";
 
 export const saveReportingForm = async (formData: ReportingFormFieldType) => {
   try {
@@ -97,4 +98,18 @@ export const saveReportingForm = async (formData: ReportingFormFieldType) => {
   } catch (error) {
     return { ...handleError(error), success: false };
   }
+};
+
+export const getAllReportsByUser = async (user: User | null) => {
+  if (!user) {
+    return null;
+  }
+
+  const reports = await prisma.reporter.findMany({
+    where: {
+      reporterId: user.id,
+    },
+  });
+
+  return reports.length > 0 ? reports : null;
 };

@@ -19,6 +19,7 @@ import PetInformationForm from './stepped-forms/PetInformationForm';
 import PrevButton from '../PrevButton';
 import { saveReportingForm } from '@/actions/reports';
 import { toast } from '../ui/toast';
+import { useRouter } from 'next/navigation';
 
 const reportingFormConfig: FormSteps[] = [
     {
@@ -45,8 +46,19 @@ const reportingFormConfig: FormSteps[] = [
 ]
 
 function ReportingDetailsForm() {
+    const router = useRouter();
+    const [formErrors, setFormErrors] = useState<string[]>([]);
 
-    const onSave = async (formData: ReportingFormFieldType) => {
+    const onSave = async (formData: ReportingFormFieldType, validateResult: {
+        valid: boolean, errors: string[]
+    }) => {
+
+        const { valid, errors } = validateResult;
+
+        if (!valid) {
+            setFormErrors(errors);
+            return;
+        }
         const response = await saveReportingForm(formData);
 
         if (response.success) {
@@ -55,6 +67,8 @@ function ReportingDetailsForm() {
                 title: "Success!",
                 description: "Reporter form is submitted successfully!"
             })
+
+            router.replace("/all-reports");
         }
 
         if (response.errorMessage) {
@@ -78,6 +92,11 @@ function ReportingDetailsForm() {
                         Give volunteers what they need to find and help this animal quickly.
                     </CardDescription>
                 </CardHeader>
+
+                {
+                    formErrors &&
+                    formErrors.map((error, index) => <span key={index} className='px-4 py-2 text-red-200 text-xs'>{error}</span>)
+                }
 
                 <MultiStepFormProvider steps={reportingFormConfig} onFinalSubmission={onSave}>
                     {({ currStep }: { currStep: FormSteps }) =>

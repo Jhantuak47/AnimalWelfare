@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useState } from "react";
-import ReportingFormFieldSchema, { ReportingFormFieldType } from "../reporting-details-formValidator";
+import ReportingFormFieldSchema, { reportingFormFieldKeys, ReportingFormFieldType } from "../reporting-details-formValidator";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ZodType } from "zod";
@@ -51,27 +51,10 @@ const MultiStepFormProvider = (
             return; // stop progressing if validation fails.
         }
 
-        const currStepValues = methods.getValues(currStep.fields);
-        const formValues = Object.fromEntries(
-            currStep.fields.map((field, index) => [
-                field,
-                currStepValues[index]
-            ])
-        );
+        const { valid } = validateFormFields(currStep.fields, currStep.validationSchema);
 
-        if (currStep.validationSchema) {
-            const validationResult = currStep.validationSchema.safeParse(formValues);
-
-            if (!validationResult.success) {
-                validationResult.error.issues.forEach(err => {
-                    methods.setError(err.path.join('.') as ReportingFormFieldKeys, {
-                        type: 'manual',
-                        message: err.message
-                    })
-                });
-
-                return;
-            }
+        if (!valid) {
+            return;
         }
 
         if (currentStepIndex < steps.length - 1) {
@@ -83,6 +66,41 @@ const MultiStepFormProvider = (
             submitSteppedForm(methods.getValues());
             methods.reset();
             saveIntoLocalStorage(0, methods.getValues());
+        }
+    }
+
+    const validateFormFields = (fields: ReportingFormFieldKeys[], validationSchema: ZodType<Partial<ReportingFormFieldType>>) => {
+        const currStepValues = methods.getValues(fields);
+        const formValues = Object.fromEntries(
+            fields.map((field, index) => [
+                field,
+                currStepValues[index]
+            ])
+        );
+
+        if (validationSchema) {
+            const validationResult = validationSchema.safeParse(formValues);
+            const errors: string[] = [];
+
+            if (!validationResult.success) {
+                validationResult.error.issues.forEach(err => {
+                    errors.push(`${err.path.join('.')} - ${err.message}`);
+                    methods.setError(err.path.join('.') as ReportingFormFieldKeys, {
+                        type: 'manual',
+                        message: err.message
+                    })
+                });
+
+                return {
+                    valid: validationResult.success,
+                    errors: errors
+                }
+            }
+        }
+
+        return {
+            valid: true,
+            errors: []
         }
     }
 
@@ -101,8 +119,10 @@ const MultiStepFormProvider = (
     }
 
     async function submitSteppedForm(data: ReportingFormFieldType) {
+        const validateResult = validateFormFields(reportingFormFieldKeys, ReportingFormFieldSchema);
+
         try {
-            onFinalSubmission(data);
+            onFinalSubmission(data, validateResult);
         } catch (error) {
             console.error('From submission error: ', error);
         }

@@ -34,7 +34,6 @@ const AdditionalInformationForm: React.FC = ({ }) => {
         nextStep();
     }
 
-
     return (
         <>
             <div className="flex flex-col gap-1.5">
