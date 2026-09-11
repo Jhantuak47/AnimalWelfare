@@ -44,23 +44,23 @@ model User {
   name        String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt  @default(now())
-  role       Role        @default(USER)
+  role        Role        @default(USER)
   claims      Reporter[]
 }
 
-
 model Reporter {
-  id              String          @id @default(uuid())
-  reporterId      String?     
-  lat             String?
-  lang            String?
-  description     String
-  photoUrl        String?
-  animalType      AnimalType
-  status          ReporterStatus
-  volunteer       User?           @relation(fields: [claimedById], references: [id])
-  claimedById     String?
-  createdAt       DateTime        @default(now())
-  resolvedAt      DateTime?       @default(now())
-  resolutionNote  String?
+  id                      String          @id @default(uuid())
+  reporterId              String?     
+  lat                     String?
+  lang                    String?
+  description             String
+  photoUrl                String?
+  animalType              AnimalType
+  status                  ReporterStatus
+  volunteer               User?           @relation(fields: [claimedById], references: [id])
+  claimedById             String?
+  createdAt               DateTime        @default(now())
+  resolvedAt              DateTime?       
+  resolutionNote          String?
+  firstAidRequired        Boolean         @default(false)
 }
